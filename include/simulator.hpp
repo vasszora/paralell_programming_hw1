@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <filesystem>
 
 class Simulator {
 public:
@@ -33,7 +34,11 @@ public:
     void iterateV();
     void iterateP();
 
+    void calculatingCentralArrays();
+
 public:
     Simulator(SizeType gridP);
     void run(double delta, double Re);
+    void printUVP(std::filesystem::path filePath);
+    void printUCentral(std::filesystem::path filePath);
 };

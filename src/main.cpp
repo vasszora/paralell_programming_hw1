@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "simulator.hpp"
 #include <iostream>
+#include "fmt/core.h"
 
 int main(int argc, char** argv) {
     // Size from command line if specified
@@ -13,7 +14,7 @@ int main(int argc, char** argv) {
         }
         grid = static_cast<Simulator::SizeType>(tmp);
     }
-    std::cout << "The size of the grid is: " << grid << "\n";
+    fmt::print("The size of the grid is: {}\n", grid);
     Simulator s{grid};
     s.run(4.5, 100.0);
 

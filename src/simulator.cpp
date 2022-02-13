@@ -3,6 +3,9 @@
 #include <iostream>
 #include <exception>
 #include <limits>
+#include <fstream>
+#include "fmt/core.h"
+#include "fmt/os.h"
 
 void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
@@ -163,6 +166,18 @@ void Simulator::iterateP() {
     }
 }
 
+void Simulator::calculatingCentralArrays() {
+    for (SizeType i = 0; i <= (grid - 1); i++) {
+        for (SizeType j = 0; j <= (grid - 1); j++) {
+            uc[(i)*grid + j] = 0.5 * (u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1]);
+            vc[(i)*grid + j] = 0.5 * (v[(i)*grid + j] + v[(i + 1) * grid + j]);
+            pc[(i)*grid + j] = 0.25
+                               * (p[(i) * (grid + 1) + j] + p[(i + 1) * (grid + 1) + j]
+                                   + p[(i) * (grid + 1) + j + 1] + p[(i + 1) * (grid + 1) + j + 1]);
+        }
+    }
+}
+
 Simulator::Simulator(SizeType gridP)
     : grid([](auto g) {
           if (g <= 1) {
@@ -189,7 +204,7 @@ Simulator::Simulator(SizeType gridP)
 }
 
 void Simulator::run(double delta, double Re) {
-    std::cout << "Running simulation with delta: " << delta << ", Re: " << Re << "\n";
+    fmt::print("Running simulation with delta: {}, Re: {}\n", delta, Re);
     auto error = std::numeric_limits<double>::max();
     unsigned step = 1;
     while (error > 0.00000001) {
@@ -203,8 +218,39 @@ void Simulator::run(double delta, double Re) {
         applyBoundaryP();
 
         error = calculateError();
-        if (step % 1000 == 1) { printf("Error is %5.8lf for the step %d\n", error, step); }
+        if (step % 1000 == 1) { fmt::print("Error is {} for the step {}\n", error, step); }
 
         ++step;
     }
+
+    calculatingCentralArrays();
+}
+
+void Simulator::printUVP(std::filesystem::path filePath) {
+    // std::ifstream file{ filePath, std::ios::out };
+    auto file = fmt::output_file(filePath.c_str());
+
+    // fprintf(file, "VARIABLES=\"X\",\"Y\",\"U\",\"V\",\"P\"\n");
+    // fprintf(file, "ZONE  F=POINT\n");
+    // fprintf(fout2, "I=%d, J=%d\n", grid, grid);
+
+    // for (j = 0; j < (grid); j++) {
+    //     for (i = 0; i < (grid); i++) {
+    //         double xpos, ypos;
+    //         xpos = i * dx;
+    //         ypos = j * dy;
+
+    //         fprintf(fout2,
+    //             "%5.8lf\t%5.8lf\t%5.8lf\t%5.8lf\t%5.8lf\n",
+    //             xpos,
+    //             ypos,
+    //             uc[(i)*grid + j],
+    //             vc[(i)*grid + j],
+    //             pc[(i)*grid + j]);
+    //     }
+    // }
+}
+
+void Simulator::printUCentral(std::filesystem::path filePath) {
+    auto file = fmt::output_file(filePath.c_str());
 }

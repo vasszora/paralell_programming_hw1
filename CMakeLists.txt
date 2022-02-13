@@ -20,10 +20,21 @@ if(USE_WARNINGS)
     set_project_warnings(project_warnings)
 endif()
 
+# Adding fmt library for modern printing
+include(FetchContent)
+
+FetchContent_Declare(
+    fmtfetch
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG 8.1.1
+)
+
+FetchContent_MakeAvailable(fmtfetch)
+
 # creating the main executable and include the CMakeList file from src to include and link all the files
 add_executable(${MAIN_BINARY} src/main.cpp)
 add_library(${SRC_LIBRARY})
-target_link_libraries(${SRC_LIBRARY} PUBLIC project_warnings)
+target_link_libraries(${SRC_LIBRARY} PUBLIC project_warnings fmt::fmt)
 include(src/CMakeLists.txt)
 
 # Testing section
