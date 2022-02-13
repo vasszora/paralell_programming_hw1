@@ -10,6 +10,8 @@ run: build
 
 clean:
 	$(MAKE) -C release clean
+	$(MAKE) -C debug clean
+	$(MAKE) -C build clean
 
 tbuild:
 	cmake -E make_directory $(CURDIR)/debug

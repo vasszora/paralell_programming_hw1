@@ -1,3 +1,10 @@
 {
-    "cmake.configureSettings": { "ENABLE_TESTING": "ON", "ENABLE_BENCHMARK": "ON" }
+    "cmake.configureSettings": {
+        "ENABLE_TESTING": "ON",
+        "ENABLE_BENCHMARK": "ON"
+    },
+    "files.associations": {
+        "iostream": "cpp",
+        "limits": "cpp"
+    }
 }

@@ -4,18 +4,18 @@
 
 int main(int argc, char** argv) {
     // Size from command line if specified
-    unsigned grid = 256;
+    Simulator::SizeType grid = 256;
     if (argc > 1) {
         auto tmp = atoi(argv[1]);
         if(tmp <= 0) {
             std::cerr << "Grid should be larger than 0\n";
             return EXIT_FAILURE;
         }
-        grid = static_cast<decltype(grid)>(tmp);
+        grid = static_cast<Simulator::SizeType>(tmp);
     }
     std::cout << "The size of the grid is: " << grid << "\n";
     Simulator s{grid};
-    s.run(4.5, 1.0, 100.0);
+    s.run(4.5, 100.0);
 
 
     // double* u = new double[grid * (grid + 1)];
