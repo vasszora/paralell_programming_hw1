@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SRC_LIBRARY "${PROJECT_NAME}Library")
 set(MAIN_BINARY "${PROJECT_NAME}")
-# set(TEST_BINARY "test${PROJECT_NAME}")
 # set(BENCH_BINARY "bench${PROJECT_NAME}")
 
 # Project warning section, this library will be empty if USE_WARNINGS is OFF
@@ -31,6 +30,7 @@ include(src/CMakeLists.txt)
 # Testing section
 option(ENABLE_TESTING "Enable Test Builds" OFF)
 if(ENABLE_TESTING)
+    set(TEST_BINARY "test${PROJECT_NAME}")
     enable_testing()
     add_subdirectory(test)
 endif()
