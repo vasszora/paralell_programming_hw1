@@ -1,8 +1,12 @@
-.PHONY: build run test benchmark
+.PHONY: build run test benchmark clean
 
 build:
-	mkdir -p build
-	cd build; cmake .. -DCMAKE_BUILD_TYPE=Release; make -j
+	cmake -E make_directory $(CURDIR)/release
+	cmake -S $(CURDIR) -B $(CURDIR)/release -DCMAKE_BUILD_TYPE=Release -DUSE_WARNINGS=ON
+	cmake --build $(CURDIR)/release --parallel
 
 run: build
-	./build/acm
+	./release/acm 64
+
+clean:
+	$(MAKE) -C release clean
