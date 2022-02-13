@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SRC_LIBRARY "${PROJECT_NAME}Library")
 set(MAIN_BINARY "${PROJECT_NAME}")
-# set(BENCH_BINARY "bench${PROJECT_NAME}")
 
 # Project warning section, this library will be empty if USE_WARNINGS is OFF
 add_library(project_warnings INTERFACE)
@@ -37,3 +36,7 @@ endif()
 
 # Benchmark section
 option(ENABLE_BENCHMARK "Enable Benchmark Builds" OFF)
+if(ENABLE_BENCHMARK)
+    set(BENCH_BINARY "bench${PROJECT_NAME}")
+    add_subdirectory(benchmark)
+endif()
