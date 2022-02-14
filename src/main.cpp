@@ -1,21 +1,21 @@
-#include <stdlib.h>
+#include "fmt/core.h"
 #include "simulator.hpp"
 #include <iostream>
-#include "fmt/core.h"
+#include <stdlib.h>
 
 int main(int argc, char** argv) {
     // Size from command line if specified
     Simulator::SizeType grid = 256;
     if (argc > 1) {
         auto tmp = atoi(argv[1]);
-        if(tmp <= 0) {
+        if (tmp <= 0) {
             std::cerr << "Grid should be larger than 0\n";
             return EXIT_FAILURE;
         }
         grid = static_cast<Simulator::SizeType>(tmp);
     }
     fmt::print("The size of the grid is: {}\n", grid);
-    Simulator s{grid};
+    Simulator s{ grid };
     s.run(4.5, 100.0);
 
 

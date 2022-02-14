@@ -6,10 +6,10 @@ class Simulator {
 public:
     typedef unsigned SizeType;
 
-// these should be a private section (until constructor), but for testing and benchmarking we keep it public
+    // these should be a private section (until constructor), but for testing and benchmarking we keep it public
     const SizeType      grid;
     const double        dx, dy, dt;
-    std::vector<double> u, un, uc, v, vn, vc, p, pn, pc, m;
+    std::vector<double> u, un, v, vn, p, pn, m;
 
     // helper functions for constructor
     void initU();
@@ -32,9 +32,10 @@ public:
     void iterateV();
     void iterateP();
 
-    void calculatingCentralArrays();
+    void deallocate();
 
 public:
     Simulator(SizeType gridP);
     void run(const double delta, const double Re);
+    ~Simulator();
 };

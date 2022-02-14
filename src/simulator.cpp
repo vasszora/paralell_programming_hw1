@@ -8,10 +8,10 @@
 
 void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
-        for (SizeType j = 0; j <= (grid); j++) {
-            u[(i) * (grid + 1) + j]        = 0.0;
-            u[(i) * (grid + 1) + grid]     = 1.0;
-            u[(i) * (grid + 1) + grid - 1] = 1.0;
+        u[(i) * (grid + 1) + grid]     = 1.0;
+        u[(i) * (grid + 1) + grid - 1] = 1.0;
+        for (SizeType j = 0; j < (grid - 1); j++) {
+            u[(i) * (grid + 1) + j] = 0.0;
         }
     }
 }
@@ -155,15 +155,11 @@ void Simulator::iterateP() {
     }
 }
 
-void Simulator::calculatingCentralArrays() {
-    for (SizeType i = 0; i <= (grid - 1); i++) {
-        for (SizeType j = 0; j <= (grid - 1); j++) {
-            uc[(i)*grid + j] = 0.5 * (u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1]);
-            vc[(i)*grid + j] = 0.5 * (v[(i)*grid + j] + v[(i + 1) * grid + j]);
-            pc[(i)*grid + j] =
-                0.25 * (p[(i) * (grid + 1) + j] + p[(i + 1) * (grid + 1) + j] + p[(i) * (grid + 1) + j + 1] + p[(i + 1) * (grid + 1) + j + 1]);
-        }
-    }
+void Simulator::deallocate() {
+    // it doesn't do anything until we use vectors
+    // because that deallocates automatically
+    // but if we have to use a more raw data structure later it is needed
+    // and when the the Tests overwrites some member those might won't deallocate
 }
 
 Simulator::Simulator(SizeType gridP)
@@ -175,16 +171,13 @@ Simulator::Simulator(SizeType gridP)
       }(gridP)),
       dx(1.0 / static_cast<double>(grid - 1)),
       dy(1.0 / static_cast<double>(grid - 1)),
-      dt(0.001 / std::pow(grid / 256.0, 2.0)),
+      dt(0.001 / std::pow(grid / 128.0 * 2.0, 2.0)),
       u(grid * (grid + 1)),
       un(grid * (grid + 1)),
-      uc(grid * grid),
       v((grid + 1) * grid),
       vn((grid + 1) * grid),
-      vc(grid * grid),
       p((grid + 1) * (grid + 1)),
       pn((grid + 1) * (grid + 1)),
-      pc(grid * grid),
       m((grid + 1) * (grid + 1)) {
     initU();
     initV();
@@ -210,8 +203,11 @@ void Simulator::run(const double delta, const double Re) {
             fmt::print("Error is {} for the step {}\n", error, step);
         }
 
+        iterateU();
+        iterateV();
+        iterateP();
         ++step;
     }
-
-    calculatingCentralArrays();
 }
+
+Simulator::~Simulator() { deallocate(); }
