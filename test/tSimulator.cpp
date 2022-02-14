@@ -7,11 +7,11 @@
 class SimulatorGrids : public ::testing::Test {
 protected:
     std::vector<Simulator::SizeType> tc{ 4, 64, 327, 512 };
-    std::default_random_engine       engine{ 0 };
+    std::default_random_engine engine{ 0 };
 
     std::vector<double> generateRandomArray(Simulator::SizeType length, double min = -5.0, double max = 5.0) {
         std::uniform_real_distribution<double> uniform_dist(min, max);
-        std::vector<double>                    arr;
+        std::vector<double> arr;
         arr.reserve(length);
         for (Simulator::SizeType i = 0; i < length; ++i) {
             arr.push_back(uniform_dist(engine));
@@ -22,13 +22,13 @@ protected:
     Simulator getNoisyState(Simulator::SizeType grid) {
         Simulator s{ grid };
         s.deallocate();
-        s.u  = generateRandomArray(grid * (grid + 1));
+        s.u = generateRandomArray(grid * (grid + 1));
         s.un = generateRandomArray(grid * (grid + 1));
-        s.v  = generateRandomArray(grid * (grid + 1));
+        s.v = generateRandomArray(grid * (grid + 1));
         s.vn = generateRandomArray(grid * (grid + 1));
-        s.p  = generateRandomArray((grid + 1) * (grid + 1), 0.0);
+        s.p = generateRandomArray((grid + 1) * (grid + 1), 0.0);
         s.pn = generateRandomArray((grid + 1) * (grid + 1), 0.0);
-        s.m  = generateRandomArray((grid + 1) * (grid + 1), 0.0);
+        s.m = generateRandomArray((grid + 1) * (grid + 1), 0.0);
         return s;
     }
 };
@@ -113,18 +113,18 @@ TEST_F(SimulatorGrids, solveU) {
                 ASSERT_DOUBLE_EQ(s.un[(i) * (grid + 1) + j],
                     s.u[(i) * (grid + 1) + j]
                         - s.dt
-                              * ((s.u[(i + 1) * (grid + 1) + j] * s.u[(i + 1) * (grid + 1) + j]
-                                     - s.u[(i - 1) * (grid + 1) + j] * s.u[(i - 1) * (grid + 1) + j])
-                                      / 2.0 / s.dx
-                                  + 0.25
-                                        * ((s.u[(i) * (grid + 1) + j] + s.u[(i) * (grid + 1) + j + 1]) * (s.v[(i)*grid + j] + s.v[(i + 1) * grid + j])
-                                            - (s.u[(i) * (grid + 1) + j] + s.u[(i) * (grid + 1) + j - 1])
-                                                  * (s.v[(i + 1) * grid + j - 1] + s.v[(i)*grid + j - 1]))
-                                        / s.dy)
+                            * ((s.u[(i + 1) * (grid + 1) + j] * s.u[(i + 1) * (grid + 1) + j]
+                                   - s.u[(i - 1) * (grid + 1) + j] * s.u[(i - 1) * (grid + 1) + j])
+                                    / 2.0 / s.dx
+                                + 0.25
+                                    * ((s.u[(i) * (grid + 1) + j] + s.u[(i) * (grid + 1) + j + 1]) * (s.v[(i)*grid + j] + s.v[(i + 1) * grid + j])
+                                        - (s.u[(i) * (grid + 1) + j] + s.u[(i) * (grid + 1) + j - 1])
+                                            * (s.v[(i + 1) * grid + j - 1] + s.v[(i)*grid + j - 1]))
+                                    / s.dy)
                         - s.dt / s.dx * (s.p[(i + 1) * (grid + 1) + j] - s.p[(i) * (grid + 1) + j])
                         + s.dt * 1.0 / Re
-                              * ((s.u[(i + 1) * (grid + 1) + j] - 2.0 * s.u[(i) * (grid + 1) + j] + s.u[(i - 1) * (grid + 1) + j]) / s.dx / s.dx
-                                  + (s.u[(i) * (grid + 1) + j + 1] - 2.0 * s.u[(i) * (grid + 1) + j] + s.u[(i) * (grid + 1) + j - 1]) / s.dy / s.dy));
+                            * ((s.u[(i + 1) * (grid + 1) + j] - 2.0 * s.u[(i) * (grid + 1) + j] + s.u[(i - 1) * (grid + 1) + j]) / s.dx / s.dx
+                                + (s.u[(i) * (grid + 1) + j + 1] - 2.0 * s.u[(i) * (grid + 1) + j] + s.u[(i) * (grid + 1) + j - 1]) / s.dy / s.dy));
             }
         }
     }
@@ -156,16 +156,16 @@ TEST_F(SimulatorGrids, solveV) {
                 ASSERT_DOUBLE_EQ(s.vn[(i)*grid + j],
                     s.v[(i)*grid + j]
                         - s.dt
-                              * (0.25
-                                      * ((s.u[(i) * (grid + 1) + j] + s.u[(i) * (grid + 1) + j + 1]) * (s.v[(i)*grid + j] + s.v[(i + 1) * grid + j])
-                                          - (s.u[(i - 1) * (grid + 1) + j] + s.u[(i - 1) * (grid + 1) + j + 1])
-                                                * (s.v[(i)*grid + j] + s.v[(i - 1) * grid + j]))
-                                      / s.dx
-                                  + (s.v[(i)*grid + j + 1] * s.v[(i)*grid + j + 1] - s.v[(i)*grid + j - 1] * s.v[(i)*grid + j - 1]) / 2.0 / s.dy)
+                            * (0.25
+                                    * ((s.u[(i) * (grid + 1) + j] + s.u[(i) * (grid + 1) + j + 1]) * (s.v[(i)*grid + j] + s.v[(i + 1) * grid + j])
+                                        - (s.u[(i - 1) * (grid + 1) + j] + s.u[(i - 1) * (grid + 1) + j + 1])
+                                            * (s.v[(i)*grid + j] + s.v[(i - 1) * grid + j]))
+                                    / s.dx
+                                + (s.v[(i)*grid + j + 1] * s.v[(i)*grid + j + 1] - s.v[(i)*grid + j - 1] * s.v[(i)*grid + j - 1]) / 2.0 / s.dy)
                         - s.dt / s.dy * (s.p[(i) * (grid + 1) + j + 1] - s.p[(i) * (grid + 1) + j])
                         + s.dt * 1.0 / Re
-                              * ((s.v[(i + 1) * grid + j] - 2.0 * s.v[(i)*grid + j] + s.v[(i - 1) * grid + j]) / s.dx / s.dx
-                                  + (s.v[(i)*grid + j + 1] - 2.0 * s.v[(i)*grid + j] + s.v[(i)*grid + j - 1]) / s.dy / s.dy));
+                            * ((s.v[(i + 1) * grid + j] - 2.0 * s.v[(i)*grid + j] + s.v[(i - 1) * grid + j]) / s.dx / s.dx
+                                + (s.v[(i)*grid + j + 1] - 2.0 * s.v[(i)*grid + j] + s.v[(i)*grid + j - 1]) / s.dy / s.dy));
             }
         }
     }
@@ -197,8 +197,8 @@ TEST_F(SimulatorGrids, solveP) {
                 ASSERT_DOUBLE_EQ(s.pn[(i) * (grid + 1) + j],
                     s.p[(i) * (grid + 1) + j]
                         - s.dt * delta
-                              * ((s.un[(i) * (grid + 1) + j] - s.un[(i - 1) * (grid + 1) + j]) / s.dx
-                                  + (s.vn[(i)*grid + j] - s.vn[(i)*grid + j - 1]) / s.dy));
+                            * ((s.un[(i) * (grid + 1) + j] - s.un[(i - 1) * (grid + 1) + j]) / s.dx
+                                + (s.vn[(i)*grid + j] - s.vn[(i)*grid + j - 1]) / s.dy));
             }
         }
     }
@@ -216,6 +216,58 @@ TEST_F(SimulatorGrids, boundP) {
         for (Simulator::SizeType j = 0; j <= (grid); j++) {
             ASSERT_DOUBLE_EQ(s.pn[(0) * (grid + 1) + j], s.pn[(1) * (grid + 1) + j]);
             ASSERT_DOUBLE_EQ(s.pn[(grid) * (grid + 1) + j], s.pn[(grid - 1) * (grid + 1) + j]);
+        }
+    }
+}
+
+TEST_F(SimulatorGrids, calculateError) {
+    for (auto grid : tc) {
+        auto s = getNoisyState(grid);
+        auto err = s.calculateError();
+
+        double error = 0.0;
+        for (Simulator::SizeType i = 1; i <= (grid - 1); i++) {
+            for (Simulator::SizeType j = 1; j <= (grid - 1); j++) {
+                error += fabs(s.m[(i) * (grid + 1) + j]);
+            }
+        }
+
+        ASSERT_DOUBLE_EQ(err, error);
+    }
+}
+
+TEST_F(SimulatorGrids, iterU) {
+    for (auto grid : tc) {
+        auto s = getNoisyState(grid);
+        auto length = grid * (grid + 1);
+        std::vector<double> old{ std::begin(s.un), std::begin(s.un) + length };
+        s.iterateU();
+        for (Simulator::SizeType i = 0; i < length; ++i) {
+            ASSERT_DOUBLE_EQ(s.u[i], old[i]);
+        }
+    }
+}
+
+TEST_F(SimulatorGrids, iterV) {
+    for (auto grid : tc) {
+        auto s = getNoisyState(grid);
+        auto length = grid * (grid + 1);
+        std::vector<double> old{ std::begin(s.vn), std::begin(s.vn) + length };
+        s.iterateV();
+        for (Simulator::SizeType i = 0; i < length; ++i) {
+            ASSERT_DOUBLE_EQ(s.v[i], old[i]);
+        }
+    }
+}
+
+TEST_F(SimulatorGrids, iterP) {
+    for (auto grid : tc) {
+        auto s = getNoisyState(grid);
+        auto length = (grid + 1) * (grid + 1);
+        std::vector<double> old{ std::begin(s.pn), std::begin(s.pn) + length };
+        s.iterateP();
+        for (Simulator::SizeType i = 0; i < length; ++i) {
+            ASSERT_DOUBLE_EQ(s.p[i], old[i]);
         }
     }
 }

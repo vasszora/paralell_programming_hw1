@@ -28,3 +28,8 @@ bbuild:
 
 benchmark: bbuild
 	./release/benchmark/benchacm
+
+valgrind: tbuild
+	valgrind -s debug/acm 16
+
+testAll: test valgrind
