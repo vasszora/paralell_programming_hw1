@@ -1,16 +1,16 @@
 AccessModifierOffset: -4
 AlignAfterOpenBracket: DontAlign
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
 AlignEscapedNewlines: Left
 AlignOperands: true
 AlignTrailingComments: false
-AllowAllParametersOfDeclarationOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: All
-AllowShortIfStatementsOnASingleLine: true
-AllowShortLoopsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: true
@@ -40,7 +40,7 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakConstructorInitializersBeforeComma: false
 BreakStringLiterals: true
-ColumnLimit: 100
+ColumnLimit: 150
 CommentPragmas: '^ IWYU pragma:'
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
@@ -79,8 +79,8 @@ ObjCSpaceAfterProperty: true
 ObjCSpaceBeforeProtocolList: false
 PointerAlignment: Left
 ReflowComments: true
-SortIncludes: false
-SortUsingDeclarations: false
+SortIncludes: true
+SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true

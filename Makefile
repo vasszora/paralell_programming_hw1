@@ -2,11 +2,11 @@
 
 build:
 	cmake -E make_directory $(CURDIR)/release
-	cmake -S $(CURDIR) -B $(CURDIR)/release -DCMAKE_BUILD_TYPE=Release -DUSE_WARNINGS=ON -DENABLE_TESTING=OFF -DENABLE_BENCHMARK=OFF
+	cmake -S $(CURDIR) -B $(CURDIR)/release -DCMAKE_BUILD_TYPE=Release -DUSE_WARNINGS=OFF -DENABLE_TESTING=OFF -DENABLE_BENCHMARK=OFF
 	cmake --build $(CURDIR)/release --parallel
 
 run: build
-	./release/acm 64
+	./release/acm 128
 
 clean:
 	$(MAKE) -C release clean

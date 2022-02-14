@@ -1,17 +1,16 @@
 #include "simulator.hpp"
-#include <cmath>
-#include <iostream>
-#include <exception>
-#include <limits>
-#include <fstream>
 #include "fmt/core.h"
-#include "fmt/os.h"
+#include <cmath>
+#include <exception>
+#include <fstream>
+#include <iostream>
+#include <limits>
 
 void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
         for (SizeType j = 0; j <= (grid); j++) {
-            u[(i) * (grid + 1) + j] = 0.0;
-            u[(i) * (grid + 1) + grid] = 1.0;
+            u[(i) * (grid + 1) + j]        = 0.0;
+            u[(i) * (grid + 1) + grid]     = 1.0;
             u[(i) * (grid + 1) + grid - 1] = 1.0;
         }
     }
@@ -19,112 +18,101 @@ void Simulator::initU() {
 
 void Simulator::initV() {
     for (SizeType i = 0; i <= (grid); i++) {
-        for (SizeType j = 0; j <= (grid - 1); j++) { v[(i)*grid + j] = 0.0; }
+        for (SizeType j = 0; j <= (grid - 1); j++) {
+            v[(i)*grid + j] = 0.0;
+        }
     }
 }
 
 void Simulator::initP() {
     for (SizeType i = 0; i <= (grid); i++) {
-        for (SizeType j = 0; j <= (grid); j++) { p[(i) * (grid + 1) + j] = 1.0; }
+        for (SizeType j = 0; j <= (grid); j++) {
+            p[(i) * (grid + 1) + j] = 1.0;
+        }
     }
 }
 
-void Simulator::solveUMomentum(double Re) {
+void Simulator::solveUMomentum(const double Re) {
     for (SizeType i = 1; i <= (grid - 2); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
             un[(i) * (grid + 1) + j] =
                 u[(i) * (grid + 1) + j]
                 - dt
-                      * ((u[(i + 1) * (grid + 1) + j] * u[(i + 1) * (grid + 1) + j]
-                             - u[(i - 1) * (grid + 1) + j] * u[(i - 1) * (grid + 1) + j])
-                              / 2.0 / dx
+                      * ((u[(i + 1) * (grid + 1) + j] * u[(i + 1) * (grid + 1) + j] - u[(i - 1) * (grid + 1) + j] * u[(i - 1) * (grid + 1) + j]) / 2.0
+                              / dx
                           + 0.25
-                                * ((u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1])
-                                        * (v[(i)*grid + j] + v[(i + 1) * grid + j])
-                                    - (u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1])
-                                          * (v[(i + 1) * grid + j - 1] + v[(i)*grid + j - 1]))
+                                * ((u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1]) * (v[(i)*grid + j] + v[(i + 1) * grid + j])
+                                    - (u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) * (v[(i + 1) * grid + j - 1] + v[(i)*grid + j - 1]))
                                 / dy)
                 - dt / dx * (p[(i + 1) * (grid + 1) + j] - p[(i) * (grid + 1) + j])
                 + dt * 1.0 / Re
-                      * ((u[(i + 1) * (grid + 1) + j] - 2.0 * u[(i) * (grid + 1) + j]
-                             + u[(i - 1) * (grid + 1) + j])
-                              / dx / dx
-                          + (u[(i) * (grid + 1) + j + 1] - 2.0 * u[(i) * (grid + 1) + j]
-                                + u[(i) * (grid + 1) + j - 1])
-                                / dy / dy);
+                      * ((u[(i + 1) * (grid + 1) + j] - 2.0 * u[(i) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j]) / dx / dx
+                          + (u[(i) * (grid + 1) + j + 1] - 2.0 * u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) / dy / dy);
         }
     }
 }
 
 void Simulator::applyBoundaryU() {
     for (SizeType j = 1; j <= (grid - 1); j++) {
-        un[(0) * (grid + 1) + j] = 0.0;
+        un[(0) * (grid + 1) + j]        = 0.0;
         un[(grid - 1) * (grid + 1) + j] = 0.0;
     }
 
     for (SizeType i = 0; i <= (grid - 1); i++) {
-        un[(i) * (grid + 1) + 0] = -un[(i) * (grid + 1) + 1];
+        un[(i) * (grid + 1) + 0]    = -un[(i) * (grid + 1) + 1];
         un[(i) * (grid + 1) + grid] = 2 - un[(i) * (grid + 1) + grid - 1];
     }
 }
 
-void Simulator::solveVMomentum(double Re) {
+void Simulator::solveVMomentum(const double Re) {
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 2); j++) {
             vn[(i)*grid + j] =
                 v[(i)*grid + j]
                 - dt
                       * (0.25
-                              * ((u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1])
-                                      * (v[(i)*grid + j] + v[(i + 1) * grid + j])
-                                  - (u[(i - 1) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j + 1])
-                                        * (v[(i)*grid + j] + v[(i - 1) * grid + j]))
+                              * ((u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1]) * (v[(i)*grid + j] + v[(i + 1) * grid + j])
+                                  - (u[(i - 1) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j + 1]) * (v[(i)*grid + j] + v[(i - 1) * grid + j]))
                               / dx
-                          + (v[(i)*grid + j + 1] * v[(i)*grid + j + 1]
-                                - v[(i)*grid + j - 1] * v[(i)*grid + j - 1])
-                                / 2.0 / dy)
+                          + (v[(i)*grid + j + 1] * v[(i)*grid + j + 1] - v[(i)*grid + j - 1] * v[(i)*grid + j - 1]) / 2.0 / dy)
                 - dt / dy * (p[(i) * (grid + 1) + j + 1] - p[(i) * (grid + 1) + j])
                 + dt * 1.0 / Re
-                      * ((v[(i + 1) * grid + j] - 2.0 * v[(i)*grid + j] + v[(i - 1) * grid + j])
-                              / dx / dx
-                          + (v[(i)*grid + j + 1] - 2.0 * v[(i)*grid + j] + v[(i)*grid + j - 1]) / dy
-                                / dy);
+                      * ((v[(i + 1) * grid + j] - 2.0 * v[(i)*grid + j] + v[(i - 1) * grid + j]) / dx / dx
+                          + (v[(i)*grid + j + 1] - 2.0 * v[(i)*grid + j] + v[(i)*grid + j - 1]) / dy / dy);
         }
     }
 }
 
 void Simulator::applyBoundaryV() {
     for (SizeType j = 1; j <= (grid - 2); j++) {
-        vn[(0) * grid + j] = -vn[(1) * grid + j];
+        vn[(0) * grid + j]  = -vn[(1) * grid + j];
         vn[(grid)*grid + j] = -vn[(grid - 1) * grid + j];
     }
 
     for (SizeType i = 0; i <= (grid); i++) {
-        vn[(i)*grid + 0] = 0.0;
+        vn[(i)*grid + 0]        = 0.0;
         vn[(i)*grid + grid - 1] = 0.0;
     }
 }
 
-void Simulator::solveContinuityEquationP(double delta) {
+void Simulator::solveContinuityEquationP(const double delta) {
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
             pn[(i) * (grid + 1) + j] =
                 p[(i) * (grid + 1) + j]
-                - dt * delta
-                      * ((un[(i) * (grid + 1) + j] - un[(i - 1) * (grid + 1) + j]) / dx
-                          + (vn[(i)*grid + j] - vn[(i)*grid + j - 1]) / dy);
+                - dt * delta * ((un[(i) * (grid + 1) + j] - un[(i - 1) * (grid + 1) + j]) / dx + (vn[(i)*grid + j] - vn[(i)*grid + j - 1]) / dy);
         }
     }
 }
 
 void Simulator::applyBoundaryP() {
     for (SizeType i = 1; i <= (grid - 1); i++) {
-        pn[(i) * (grid + 1) + 0] = pn[(i) * (grid + 1) + 1];
+        pn[(i) * (grid + 1) + 0]    = pn[(i) * (grid + 1) + 1];
         pn[(i) * (grid + 1) + grid] = pn[(i) * (grid + 1) + grid - 1];
     }
 
     for (SizeType j = 0; j <= (grid); j++) {
-        pn[(0) * (grid + 1) + j] = pn[(1) * (grid + 1) + j];
+        pn[(0) * (grid + 1) + j]    = pn[(1) * (grid + 1) + j];
         pn[(grid) * (grid + 1) + j] = pn[(grid - 1) * (grid + 1) + j];
     }
 }
@@ -135,8 +123,7 @@ double Simulator::calculateError() {
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
             m[(i) * (grid + 1) + j] =
-                ((un[(i) * (grid + 1) + j] - un[(i - 1) * (grid + 1) + j]) / dx
-                    + (vn[(i)*grid + j] - vn[(i)*grid + j - 1]) / dy);
+                ((un[(i) * (grid + 1) + j] - un[(i - 1) * (grid + 1) + j]) / dx + (vn[(i)*grid + j] - vn[(i)*grid + j - 1]) / dy);
             error += fabs(m[(i) * (grid + 1) + j]);
         }
     }
@@ -154,7 +141,9 @@ void Simulator::iterateU() {
 
 void Simulator::iterateV() {
     for (SizeType i = 0; i <= (grid); i++) {
-        for (SizeType j = 0; j <= (grid - 1); j++) { v[(i)*grid + j] = vn[(i)*grid + j]; }
+        for (SizeType j = 0; j <= (grid - 1); j++) {
+            v[(i)*grid + j] = vn[(i)*grid + j];
+        }
     }
 }
 
@@ -171,9 +160,8 @@ void Simulator::calculatingCentralArrays() {
         for (SizeType j = 0; j <= (grid - 1); j++) {
             uc[(i)*grid + j] = 0.5 * (u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1]);
             vc[(i)*grid + j] = 0.5 * (v[(i)*grid + j] + v[(i + 1) * grid + j]);
-            pc[(i)*grid + j] = 0.25
-                               * (p[(i) * (grid + 1) + j] + p[(i + 1) * (grid + 1) + j]
-                                   + p[(i) * (grid + 1) + j + 1] + p[(i + 1) * (grid + 1) + j + 1]);
+            pc[(i)*grid + j] =
+                0.25 * (p[(i) * (grid + 1) + j] + p[(i + 1) * (grid + 1) + j] + p[(i) * (grid + 1) + j + 1] + p[(i + 1) * (grid + 1) + j + 1]);
         }
     }
 }
@@ -203,10 +191,10 @@ Simulator::Simulator(SizeType gridP)
     initP();
 }
 
-void Simulator::run(double delta, double Re) {
+void Simulator::run(const double delta, const double Re) {
     fmt::print("Running simulation with delta: {}, Re: {}\n", delta, Re);
-    auto error = std::numeric_limits<double>::max();
-    unsigned step = 1;
+    auto     error = std::numeric_limits<double>::max();
+    unsigned step  = 1;
     while (error > 0.00000001) {
         solveUMomentum(Re);
         applyBoundaryU();
@@ -218,39 +206,12 @@ void Simulator::run(double delta, double Re) {
         applyBoundaryP();
 
         error = calculateError();
-        if (step % 1000 == 1) { fmt::print("Error is {} for the step {}\n", error, step); }
+        if (step % 1000 == 1) {
+            fmt::print("Error is {} for the step {}\n", error, step);
+        }
 
         ++step;
     }
 
     calculatingCentralArrays();
-}
-
-void Simulator::printUVP(std::filesystem::path filePath) {
-    // std::ifstream file{ filePath, std::ios::out };
-    auto file = fmt::output_file(filePath.c_str());
-
-    // fprintf(file, "VARIABLES=\"X\",\"Y\",\"U\",\"V\",\"P\"\n");
-    // fprintf(file, "ZONE  F=POINT\n");
-    // fprintf(fout2, "I=%d, J=%d\n", grid, grid);
-
-    // for (j = 0; j < (grid); j++) {
-    //     for (i = 0; i < (grid); i++) {
-    //         double xpos, ypos;
-    //         xpos = i * dx;
-    //         ypos = j * dy;
-
-    //         fprintf(fout2,
-    //             "%5.8lf\t%5.8lf\t%5.8lf\t%5.8lf\t%5.8lf\n",
-    //             xpos,
-    //             ypos,
-    //             uc[(i)*grid + j],
-    //             vc[(i)*grid + j],
-    //             pc[(i)*grid + j]);
-    //     }
-    // }
-}
-
-void Simulator::printUCentral(std::filesystem::path filePath) {
-    auto file = fmt::output_file(filePath.c_str());
 }
