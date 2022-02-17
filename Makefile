@@ -6,7 +6,7 @@ build:
 	cmake --build $(CURDIR)/release --parallel
 
 run: build
-	./release/acm 64 2000
+	./release/acm 128 2000
 
 clean:
 	$(MAKE) -C release clean
@@ -27,7 +27,7 @@ bbuild:
 	cmake --build $(CURDIR)/release --parallel
 
 benchmark: bbuild
-	./release/benchmark/benchacm
+	./release/benchmark/benchacm --benchmark_filter=BM_run*
 
 valgrind: tbuild
 	valgrind -s debug/acm 16

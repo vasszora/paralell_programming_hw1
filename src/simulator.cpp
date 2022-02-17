@@ -131,27 +131,30 @@ Simulator::FloatType Simulator::calculateError() {
 }
 
 void Simulator::iterateU() {
-    for (SizeType i = 0; i <= (grid - 1); i++) {
-        for (SizeType j = 0; j <= (grid); j++) {
-            u[(i) * (grid + 1) + j] = un[(i) * (grid + 1) + j];
-        }
-    }
+    std::swap(u, un);
+    // for (SizeType i = 0; i <= (grid - 1); i++) {
+    //     for (SizeType j = 0; j <= (grid); j++) {
+    //         u[(i) * (grid + 1) + j] = un[(i) * (grid + 1) + j];
+    //     }
+    // }
 }
 
 void Simulator::iterateV() {
-    for (SizeType i = 0; i <= (grid); i++) {
-        for (SizeType j = 0; j <= (grid - 1); j++) {
-            v[(i)*grid + j] = vn[(i)*grid + j];
-        }
-    }
+    std::swap(v, vn);
+    // for (SizeType i = 0; i <= (grid); i++) {
+    //     for (SizeType j = 0; j <= (grid - 1); j++) {
+    //         v[(i)*grid + j] = vn[(i)*grid + j];
+    //     }
+    // }
 }
 
 void Simulator::iterateP() {
-    for (SizeType i = 0; i <= (grid); i++) {
-        for (SizeType j = 0; j <= (grid); j++) {
-            p[(i) * (grid + 1) + j] = pn[(i) * (grid + 1) + j];
-        }
-    }
+    std::swap(p, pn);
+    // for (SizeType i = 0; i <= (grid); i++) {
+    //     for (SizeType j = 0; j <= (grid); j++) {
+    //         p[(i) * (grid + 1) + j] = pn[(i) * (grid + 1) + j];
+    //     }
+    // }
 }
 
 void Simulator::deallocate() {
@@ -189,7 +192,7 @@ void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps
     }
     auto error = std::numeric_limits<FloatType>::max();
     unsigned step = 1;
-    while (error > 0.00000001 && step < maxSteps) {
+    while (error > 0.00000001 && step <= maxSteps) {
         solveUMomentum(Re);
         applyBoundaryU();
 
