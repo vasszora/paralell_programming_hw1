@@ -9,9 +9,9 @@ protected:
     std::vector<Simulator::SizeType> tc{ 4, 64, 327, 512 };
     std::default_random_engine engine{ 0 };
 
-    std::vector<double> generateRandomArray(Simulator::SizeType length, double min = -5.0, double max = 5.0) {
-        std::uniform_real_distribution<double> uniform_dist(min, max);
-        std::vector<double> arr;
+    std::vector<Simulator::FloatType> generateRandomArray(Simulator::SizeType length, Simulator::FloatType min = -5.0, Simulator::FloatType max = 5.0) {
+        std::uniform_real_distribution<Simulator::FloatType> uniform_dist(min, max);
+        std::vector<Simulator::FloatType> arr;
         arr.reserve(length);
         for (Simulator::SizeType i = 0; i < length; ++i) {
             arr.push_back(uniform_dist(engine));

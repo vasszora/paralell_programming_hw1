@@ -6,7 +6,7 @@ build:
 	cmake --build $(CURDIR)/release --parallel
 
 run: build
-	./release/acm 128
+	./release/acm 64 2000
 
 clean:
 	$(MAKE) -C release clean

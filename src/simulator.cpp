@@ -8,7 +8,7 @@
 
 void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
-        u[(i) * (grid + 1) + grid]     = 1.0;
+        u[(i) * (grid + 1) + grid] = 1.0;
         u[(i) * (grid + 1) + grid - 1] = 1.0;
         for (SizeType j = 0; j < (grid - 1); j++) {
             u[(i) * (grid + 1) + j] = 0.0;
@@ -32,74 +32,71 @@ void Simulator::initP() {
     }
 }
 
-void Simulator::solveUMomentum(const double Re) {
+void Simulator::solveUMomentum(const FloatType Re) {
     for (SizeType i = 1; i <= (grid - 2); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
-            un[(i) * (grid + 1) + j] =
-                u[(i) * (grid + 1) + j]
+            un[(i) * (grid + 1) + j] = u[(i) * (grid + 1) + j]
                 - dt
-                      * ((u[(i + 1) * (grid + 1) + j] * u[(i + 1) * (grid + 1) + j] - u[(i - 1) * (grid + 1) + j] * u[(i - 1) * (grid + 1) + j]) / 2.0
-                              / dx
-                          + 0.25
-                                * ((u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1]) * (v[(i)*grid + j] + v[(i + 1) * grid + j])
-                                    - (u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) * (v[(i + 1) * grid + j - 1] + v[(i)*grid + j - 1]))
-                                / dy)
+                    * ((u[(i + 1) * (grid + 1) + j] * u[(i + 1) * (grid + 1) + j] - u[(i - 1) * (grid + 1) + j] * u[(i - 1) * (grid + 1) + j]) / 2.0
+                            / dx
+                        + 0.25
+                            * ((u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1]) * (v[(i)*grid + j] + v[(i + 1) * grid + j])
+                                - (u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) * (v[(i + 1) * grid + j - 1] + v[(i)*grid + j - 1]))
+                            / dy)
                 - dt / dx * (p[(i + 1) * (grid + 1) + j] - p[(i) * (grid + 1) + j])
                 + dt * 1.0 / Re
-                      * ((u[(i + 1) * (grid + 1) + j] - 2.0 * u[(i) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j]) / dx / dx
-                          + (u[(i) * (grid + 1) + j + 1] - 2.0 * u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) / dy / dy);
+                    * ((u[(i + 1) * (grid + 1) + j] - 2.0 * u[(i) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j]) / dx / dx
+                        + (u[(i) * (grid + 1) + j + 1] - 2.0 * u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) / dy / dy);
         }
     }
 }
 
 void Simulator::applyBoundaryU() {
     for (SizeType j = 1; j <= (grid - 1); j++) {
-        un[(0) * (grid + 1) + j]        = 0.0;
+        un[(0) * (grid + 1) + j] = 0.0;
         un[(grid - 1) * (grid + 1) + j] = 0.0;
     }
 
     for (SizeType i = 0; i <= (grid - 1); i++) {
-        un[(i) * (grid + 1) + 0]    = -un[(i) * (grid + 1) + 1];
+        un[(i) * (grid + 1) + 0] = -un[(i) * (grid + 1) + 1];
         un[(i) * (grid + 1) + grid] = 2 - un[(i) * (grid + 1) + grid - 1];
     }
 }
 
-void Simulator::solveVMomentum(const double Re) {
+void Simulator::solveVMomentum(const FloatType Re) {
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 2); j++) {
-            vn[(i)*grid + j] =
-                v[(i)*grid + j]
+            vn[(i)*grid + j] = v[(i)*grid + j]
                 - dt
-                      * (0.25
-                              * ((u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1]) * (v[(i)*grid + j] + v[(i + 1) * grid + j])
-                                  - (u[(i - 1) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j + 1]) * (v[(i)*grid + j] + v[(i - 1) * grid + j]))
-                              / dx
-                          + (v[(i)*grid + j + 1] * v[(i)*grid + j + 1] - v[(i)*grid + j - 1] * v[(i)*grid + j - 1]) / 2.0 / dy)
+                    * (0.25
+                            * ((u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j + 1]) * (v[(i)*grid + j] + v[(i + 1) * grid + j])
+                                - (u[(i - 1) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j + 1]) * (v[(i)*grid + j] + v[(i - 1) * grid + j]))
+                            / dx
+                        + (v[(i)*grid + j + 1] * v[(i)*grid + j + 1] - v[(i)*grid + j - 1] * v[(i)*grid + j - 1]) / 2.0 / dy)
                 - dt / dy * (p[(i) * (grid + 1) + j + 1] - p[(i) * (grid + 1) + j])
                 + dt * 1.0 / Re
-                      * ((v[(i + 1) * grid + j] - 2.0 * v[(i)*grid + j] + v[(i - 1) * grid + j]) / dx / dx
-                          + (v[(i)*grid + j + 1] - 2.0 * v[(i)*grid + j] + v[(i)*grid + j - 1]) / dy / dy);
+                    * ((v[(i + 1) * grid + j] - 2.0 * v[(i)*grid + j] + v[(i - 1) * grid + j]) / dx / dx
+                        + (v[(i)*grid + j + 1] - 2.0 * v[(i)*grid + j] + v[(i)*grid + j - 1]) / dy / dy);
         }
     }
 }
 
 void Simulator::applyBoundaryV() {
     for (SizeType j = 1; j <= (grid - 2); j++) {
-        vn[(0) * grid + j]  = -vn[(1) * grid + j];
+        vn[(0) * grid + j] = -vn[(1) * grid + j];
         vn[(grid)*grid + j] = -vn[(grid - 1) * grid + j];
     }
 
     for (SizeType i = 0; i <= (grid); i++) {
-        vn[(i)*grid + 0]        = 0.0;
+        vn[(i)*grid + 0] = 0.0;
         vn[(i)*grid + grid - 1] = 0.0;
     }
 }
 
-void Simulator::solveContinuityEquationP(const double delta) {
+void Simulator::solveContinuityEquationP(const FloatType delta) {
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
-            pn[(i) * (grid + 1) + j] =
-                p[(i) * (grid + 1) + j]
+            pn[(i) * (grid + 1) + j] = p[(i) * (grid + 1) + j]
                 - dt * delta * ((un[(i) * (grid + 1) + j] - un[(i - 1) * (grid + 1) + j]) / dx + (vn[(i)*grid + j] - vn[(i)*grid + j - 1]) / dy);
         }
     }
@@ -107,18 +104,18 @@ void Simulator::solveContinuityEquationP(const double delta) {
 
 void Simulator::applyBoundaryP() {
     for (SizeType i = 1; i <= (grid - 1); i++) {
-        pn[(i) * (grid + 1) + 0]    = pn[(i) * (grid + 1) + 1];
+        pn[(i) * (grid + 1) + 0] = pn[(i) * (grid + 1) + 1];
         pn[(i) * (grid + 1) + grid] = pn[(i) * (grid + 1) + grid - 1];
     }
 
     for (SizeType j = 0; j <= (grid); j++) {
-        pn[(0) * (grid + 1) + j]    = pn[(1) * (grid + 1) + j];
+        pn[(0) * (grid + 1) + j] = pn[(1) * (grid + 1) + j];
         pn[(grid) * (grid + 1) + j] = pn[(grid - 1) * (grid + 1) + j];
     }
 }
 
-double Simulator::calculateError() {
-    double error = 0.0;
+Simulator::FloatType Simulator::calculateError() {
+    FloatType error = 0.0;
 
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
@@ -169,8 +166,8 @@ Simulator::Simulator(SizeType gridP)
           }
           return g;
       }(gridP)),
-      dx(1.0 / static_cast<double>(grid - 1)),
-      dy(1.0 / static_cast<double>(grid - 1)),
+      dx(1.0 / static_cast<FloatType>(grid - 1)),
+      dy(1.0 / static_cast<FloatType>(grid - 1)),
       dt(0.001 / std::pow(grid / 128.0 * 2.0, 2.0)),
       u(grid * (grid + 1)),
       un(grid * (grid + 1)),
@@ -184,11 +181,11 @@ Simulator::Simulator(SizeType gridP)
     initP();
 }
 
-void Simulator::run(const double delta, const double Re) {
+void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps) {
     fmt::print("Running simulation with delta: {}, Re: {}\n", delta, Re);
-    auto     error = std::numeric_limits<double>::max();
-    unsigned step  = 1;
-    while (error > 0.00000001) {
+    auto error = std::numeric_limits<FloatType>::max();
+    unsigned step = 1;
+    while (error > 0.00000001 && step < maxSteps) {
         solveUMomentum(Re);
         applyBoundaryU();
 

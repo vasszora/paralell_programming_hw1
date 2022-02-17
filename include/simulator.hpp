@@ -5,11 +5,12 @@
 class Simulator {
 public:
     typedef unsigned SizeType;
+    typedef double FloatType;
 
     // these should be a private section (until constructor), but for testing and benchmarking we keep it public
-    const SizeType      grid;
-    const double        dx, dy, dt;
-    std::vector<double> u, un, v, vn, p, pn, m;
+    const SizeType grid;
+    const FloatType dx, dy, dt;
+    std::vector<FloatType> u, un, v, vn, p, pn, m;
 
     // helper functions for constructor
     void initU();
@@ -17,16 +18,16 @@ public:
     void initP();
 
     // helper functions for run
-    void solveUMomentum(const double Re);
+    void solveUMomentum(const FloatType Re);
     void applyBoundaryU();
 
-    void solveVMomentum(const double Re);
+    void solveVMomentum(const FloatType Re);
     void applyBoundaryV();
 
-    void solveContinuityEquationP(const double delta);
+    void solveContinuityEquationP(const FloatType delta);
     void applyBoundaryP();
 
-    double calculateError();
+    FloatType calculateError();
 
     void iterateU();
     void iterateV();
@@ -36,6 +37,6 @@ public:
 
 public:
     Simulator(SizeType gridP);
-    void run(const double delta, const double Re);
+    void run(const FloatType delta, const FloatType Re, unsigned maxSteps = std::numeric_limits<unsigned>::max());
     ~Simulator();
 };
