@@ -6,6 +6,8 @@
 #include <iostream>
 #include <limits>
 
+void Simulator::setPrinting(bool toPrint) { printing = toPrint; }
+
 void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
         u[(i) * (grid + 1) + grid] = 1.0;
@@ -182,7 +184,9 @@ Simulator::Simulator(SizeType gridP)
 }
 
 void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps) {
-    fmt::print("Running simulation with delta: {}, Re: {}\n", delta, Re);
+    if (printing) {
+        fmt::print("Running simulation with delta: {}, Re: {}\n", delta, Re);
+    }
     auto error = std::numeric_limits<FloatType>::max();
     unsigned step = 1;
     while (error > 0.00000001 && step < maxSteps) {
@@ -196,7 +200,8 @@ void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps
         applyBoundaryP();
 
         error = calculateError();
-        if (step % 1000 == 1) {
+        
+        if (printing && (step % 1000 == 1)) {
             fmt::print("Error is {} for the step {}\n", error, step);
         }
 

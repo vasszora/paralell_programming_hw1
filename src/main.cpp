@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     }
     fmt::print("The size of the grid is {}\n", grid);
     Simulator s{ grid };
+    Simulator::setPrinting(true);
     if (maxSteps) {
         fmt::print("The maximum number of steps is {}\n", maxSteps.value());
         s.run(4.5, 100.0, maxSteps.value());

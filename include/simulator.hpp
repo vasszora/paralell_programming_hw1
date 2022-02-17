@@ -3,7 +3,10 @@
 #include <vector>
 
 class Simulator {
+    static inline bool printing = false;
 public:
+    static void setPrinting(bool toPrint);
+
     typedef unsigned SizeType;
     typedef double FloatType;
 
