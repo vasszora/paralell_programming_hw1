@@ -1,17 +1,12 @@
-find_package(GTest QUIET)
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    EXCLUDE_FROM_ALL    TRUE
+    GIT_TAG e2239ee6043f73722e7aa812a459f54a28552929
+)
 
-if(NOT GTEST_FOUND)
-    message("GTest not found, so it will be installed")
-    include(FetchContent)
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        EXCLUDE_FROM_ALL    TRUE
-        GIT_TAG e2239ee6043f73722e7aa812a459f54a28552929
-    )
-
-    FetchContent_MakeAvailable(googletest)
-endif()
+FetchContent_MakeAvailable(googletest)
 
 add_executable(${TEST_BINARY} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
 target_sources(${TEST_BINARY} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/tSimulator.cpp)

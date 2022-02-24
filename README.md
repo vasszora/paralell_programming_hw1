@@ -16,8 +16,8 @@
 * **[src](src):** contains the source files
   *  [CMakeLists.txt](src/CMakeLists.txt): add the local source file(s) to the binary, and adds the [include](include) to the path (makes you able to import)
 *  **[benchmark](benchmark):** Contains the code for the benchmark
-   *  [CMakeLists.txt](benchmark/CMakeLists.txt): first it search for the benchmark library if it isn't found then it'll download it
+   *  [CMakeLists.txt](benchmark/CMakeLists.txt): downloads the benchmark library and links it to the benchmark binary
 *  **[test](test):** Contains the code for testing
-   *  [CMakeLists.txt](test/CMakeLists.txt): same logic as with benchmark, searches for the GoogleTest library if cannot find it will download it
+   *  [CMakeLists.txt](test/CMakeLists.txt): downloads the Google test library and links it to the test binary
 *  **[.devcontainer](.devcontainer/devcontainer.json):** this describes who to setup the container environment
 *  **[.vscode](.vscode/settings.json):** It can contain many settings for different extensions and the vanilla VSCode too, but at the moment the only settings are about how to use the CMake extension. The first part sets the cmake flags, by defult it will build all targets (normal, test and benchmark). The second part is something you might want to change. It describes what programs argument should it pass when you run it in debug mode (from the bottom blue bar)
