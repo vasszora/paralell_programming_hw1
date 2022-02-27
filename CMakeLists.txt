@@ -31,10 +31,12 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(fmtfetch)
 
+find_package(OpenMP REQUIRED)
+
 # creating the main executable and include the CMakeList file from src to include and link all the files
 add_executable(${MAIN_BINARY} src/main.cpp)
 add_library(${SRC_LIBRARY})
-target_link_libraries(${SRC_LIBRARY} PUBLIC project_warnings fmt::fmt)
+target_link_libraries(${SRC_LIBRARY} PUBLIC project_warnings fmt::fmt OpenMP::OpenMP_CXX)
 include(src/CMakeLists.txt)
 
 # Testing section
