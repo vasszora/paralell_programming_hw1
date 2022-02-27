@@ -3,6 +3,7 @@
 #include <iostream>
 #include <optional>
 #include <stdlib.h>
+#include "omp.h"
 
 int main(int argc, char** argv) {
     // Size from command line if specified
@@ -27,6 +28,7 @@ int main(int argc, char** argv) {
     fmt::print("The size of the grid is {}\n", grid);
     Simulator s{ grid };
     Simulator::setPrinting(true);
+    fmt::print("Number of used OpenMP threads is {}\n", omp_get_max_threads());
     if (maxSteps) {
         fmt::print("The maximum number of steps is {}\n", maxSteps.value());
         s.run(4.5, 100.0, maxSteps.value());
