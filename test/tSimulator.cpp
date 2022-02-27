@@ -232,7 +232,7 @@ TEST_F(SimulatorGrids, calculateError) {
             }
         }
 
-        ASSERT_DOUBLE_EQ(err, error);
+        ASSERT_NEAR(err, error, 0.0001);
     }
 }
 
