@@ -8,7 +8,7 @@
 
 void Simulator::setPrinting(bool toPrint) { printing = toPrint; }
 
-void Simulator::initU() { //paralell not needed for initialization
+void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
         u[(i) * (grid + 1) + grid] = 1.0;
         u[(i) * (grid + 1) + grid - 1] = 1.0;
@@ -18,7 +18,7 @@ void Simulator::initU() { //paralell not needed for initialization
     }
 }
 
-void Simulator::initV() {//paralell not needed for initialization
+void Simulator::initV() {
     for (SizeType i = 0; i <= (grid); i++) {
         for (SizeType j = 0; j <= (grid - 1); j++) {
             v[(i)*grid + j] = 0.0;
@@ -26,7 +26,7 @@ void Simulator::initV() {//paralell not needed for initialization
     }
 }
 
-void Simulator::initP() {//paralell not needed for initialization
+void Simulator::initP() {
     for (SizeType i = 0; i <= (grid); i++) {
         for (SizeType j = 0; j <= (grid); j++) {
             p[(i) * (grid + 1) + j] = 1.0;
@@ -50,7 +50,7 @@ void Simulator::solveUMomentum(const FloatType Re) { //used: un, u, dt, dx, dy, 
     }
 }
 
-void Simulator::applyBoundaryU() {//used: un, grid
+void Simulator::applyBoundaryU() {
     for (SizeType j = 1; j <= (grid - 1); j++) {
         un[(0) * (grid + 1) + j] = 0.0;
         un[(grid - 1) * (grid + 1) + j] = 0.0;
@@ -77,7 +77,7 @@ void Simulator::solveVMomentum(const FloatType Re) {//used: vn, grid, u, v, dt, 
     }
 }
 
-void Simulator::applyBoundaryV() { //vn, grid
+void Simulator::applyBoundaryV() {
     for (SizeType j = 1; j <= (grid - 2); j++) {
         vn[(0) * grid + j] = -vn[(1) * grid + j];
         vn[(grid)*grid + j] = -vn[(grid - 1) * grid + j];
