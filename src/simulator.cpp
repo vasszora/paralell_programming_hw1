@@ -35,6 +35,7 @@ void Simulator::initP() {
 }
 
 void Simulator::solveUMomentum(const FloatType Re) {
+    auto t1 = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for
     for (SizeType i = 1; i <= (grid - 2); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
@@ -48,6 +49,9 @@ void Simulator::solveUMomentum(const FloatType Re) {
                      + (u[(i) * (grid + 1) + j + 1] - 2.0 * u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) / dy / dy);
         }
     }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    timeU += std::chrono::duration<FloatType>(t2-t1).count();
+    countU++;
 }
 
 void Simulator::applyBoundaryU() {
@@ -63,6 +67,7 @@ void Simulator::applyBoundaryU() {
 }
 
 void Simulator::solveVMomentum(const FloatType Re) {
+    auto t1 = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 2); j++) {
@@ -75,6 +80,9 @@ void Simulator::solveVMomentum(const FloatType Re) {
                               + (v[(i)*grid + j + 1] - 2.0 * v[(i)*grid + j] + v[(i)*grid + j - 1]) / dy / dy);
         }
     }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    timeV += std::chrono::duration<FloatType>(t2-t1).count();
+    countV++;
 }
 
 void Simulator::applyBoundaryV() {
@@ -90,6 +98,7 @@ void Simulator::applyBoundaryV() {
 }
 
 void Simulator::solveContinuityEquationP(const FloatType delta) {
+    auto t1 = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
@@ -97,6 +106,9 @@ void Simulator::solveContinuityEquationP(const FloatType delta) {
                 - dt * delta * ((un[(i) * (grid + 1) + j] - un[(i - 1) * (grid + 1) + j]) / dx + (vn[(i)*grid + j] - vn[(i)*grid + j - 1]) / dy);
         }
     }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    timeP += std::chrono::duration<FloatType>(t2-t1).count();
+    countP++;
 }
 
 void Simulator::applyBoundaryP() {
@@ -208,6 +220,11 @@ void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps
         iterateP();
         ++step;
     }
+    //Print bandwidth table
+    fmt::print("Method \t Time \t Count \n");
+    fmt::print("solveUMomentum: \t {}ms \t {} \n", timeU, countU);
+    fmt::print("solveVMomentum: \t {}ms \t {} \n", timeV, countV);
+    fmt::print("solveContinuityEquationP: \t {}ms \t {} \n", timeP, countP);
 }
 
 Simulator::~Simulator() { deallocate(); }

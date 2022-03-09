@@ -15,6 +15,8 @@ public:
     const FloatType dx, dy, dt;
     std::vector<FloatType> u, un, v, vn, p, pn, m;
 
+    FloatType timeU, timeV, timeP, countU, countV, countP; //TODO make private
+
     // helper functions for constructor
     void initU();
     void initV();
