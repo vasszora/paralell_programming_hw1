@@ -1,9 +1,36 @@
 #pragma once
 #include <filesystem>
 #include <vector>
+#include "fmt/core.h"
+
+struct counter {
+    unsigned count = 0;
+    double time = 0;
+    std::string methodName;
+    unsigned bytesMoved;
+
+    void setCounter(std::string _methodName, unsigned _bytesMoved) {
+        methodName = _methodName;
+        bytesMoved = _bytesMoved;
+    }
+
+    double getBandwidth() {
+        return static_cast<double>(bytesMoved * count)/time/1000;
+    }
+
+    void printCounter() {
+        fmt::print("{:<20} {:<20} {:<20} {:<20} \n", methodName, time, count, getBandwidth());
+    }
+};
 
 class Simulator {
     static inline bool printing = false;
+    counter counterSolveU;
+    counter counterSolveV;
+    counter counterSolveP;
+    counter counterBoundaryU;
+    counter counterBoundaryV;
+    counter counterBoundaryP;
 public:
     static void setPrinting(bool toPrint);
 
@@ -15,12 +42,11 @@ public:
     const FloatType dx, dy, dt;
     std::vector<FloatType> u, un, v, vn, p, pn, m;
 
-    FloatType timeU, timeV, timeP, countU, countV, countP; //TODO make private
-
     // helper functions for constructor
     void initU();
     void initV();
     void initP();
+    void initCounters();
 
     // helper functions for run
     void solveUMomentum(const FloatType Re);

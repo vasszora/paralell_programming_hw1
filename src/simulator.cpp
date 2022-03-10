@@ -1,10 +1,10 @@
 #include "simulator.hpp"
-#include "fmt/core.h"
 #include <cmath>
 #include <exception>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <chrono>
 
 void Simulator::setPrinting(bool toPrint) { printing = toPrint; }
 
@@ -47,11 +47,11 @@ void Simulator::solveUMomentum(const FloatType Re) {
                     - dt / dx * (p[(i + 1) * (grid + 1) + j] - p[(i) * (grid + 1) + j]) + dt * 1.0 / Re
                     * ((u[(i + 1) * (grid + 1) + j] - 2.0 * u[(i) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j]) / dx / dx
                      + (u[(i) * (grid + 1) + j + 1] - 2.0 * u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) / dy / dy);
-        }
+        }//u, v, p
     }
     auto t2 = std::chrono::high_resolution_clock::now();
-    timeU += std::chrono::duration<FloatType>(t2-t1).count();
-    countU++;
+    counterSolveU.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
+    counterSolveU.count++;
 }
 
 void Simulator::applyBoundaryU() {
@@ -81,8 +81,8 @@ void Simulator::solveVMomentum(const FloatType Re) {
         }
     }
     auto t2 = std::chrono::high_resolution_clock::now();
-    timeV += std::chrono::duration<FloatType>(t2-t1).count();
-    countV++;
+    counterSolveV.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
+    counterSolveV.count++;
 }
 
 void Simulator::applyBoundaryV() {
@@ -107,8 +107,8 @@ void Simulator::solveContinuityEquationP(const FloatType delta) {
         }
     }
     auto t2 = std::chrono::high_resolution_clock::now();
-    timeP += std::chrono::duration<FloatType>(t2-t1).count();
-    countP++;
+    counterSolveP.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
+    counterSolveP.count++;
 }
 
 void Simulator::applyBoundaryP() {
@@ -191,6 +191,18 @@ Simulator::Simulator(SizeType gridP)
     initU();
     initV();
     initP();
+    initCounters();
+}
+
+void Simulator::initCounters() {
+    unsigned byteMoved = static_cast<unsigned>((grid - 1) * (grid - 1) * sizeof(FloatType));
+    unsigned byteMoved2 = static_cast<unsigned>((grid - 1) * (grid - 2) * sizeof(FloatType));
+    counterSolveU.setCounter("solveUMomentum", byteMoved2 * 4);
+    counterSolveV.setCounter("solveVMomentum", byteMoved2 * 4);
+    counterSolveP.setCounter("solveVMomentum", byteMoved * 4);
+    //counterBoundaryU.setCounter("applyBoundaryU", );
+    //counterBoundaryV.setCounter("applyBoundaryV");
+    //counterBoundaryP.setCounter("applyBoundaryP");
 }
 
 void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps) {
@@ -221,10 +233,10 @@ void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps
         ++step;
     }
     //Print bandwidth table
-    fmt::print("Method \t Time \t Count \n");
-    fmt::print("solveUMomentum: \t {}ms \t {} \n", timeU, countU);
-    fmt::print("solveVMomentum: \t {}ms \t {} \n", timeV, countV);
-    fmt::print("solveContinuityEquationP: \t {}ms \t {} \n", timeP, countP);
+    fmt::print("{:<20} {:<20} {:<20} {:<20}\n", "Method", "Time (microseconds)", "Count", "Bandwidth");
+    counterSolveU.printCounter();
+    counterSolveV.printCounter();
+    counterSolveP.printCounter();
 }
 
 Simulator::~Simulator() { deallocate(); }
