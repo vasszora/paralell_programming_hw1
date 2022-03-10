@@ -55,6 +55,7 @@ void Simulator::solveUMomentum(const FloatType Re) {
 }
 
 void Simulator::applyBoundaryU() {
+    auto t1 = std::chrono::high_resolution_clock::now();
     for (SizeType j = 1; j <= (grid - 1); j++) {
         un[(0) * (grid + 1) + j] = 0.0;
         un[(grid - 1) * (grid + 1) + j] = 0.0;
@@ -64,6 +65,9 @@ void Simulator::applyBoundaryU() {
         un[(i) * (grid + 1) + 0] = -un[(i) * (grid + 1) + 1];
         un[(i) * (grid + 1) + grid] = 2 - un[(i) * (grid + 1) + grid - 1];
     }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    counterBoundaryU.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
+    counterBoundaryU.count++;
 }
 
 void Simulator::solveVMomentum(const FloatType Re) {
@@ -86,6 +90,7 @@ void Simulator::solveVMomentum(const FloatType Re) {
 }
 
 void Simulator::applyBoundaryV() {
+    auto t1 = std::chrono::high_resolution_clock::now();
     for (SizeType j = 1; j <= (grid - 2); j++) {
         vn[(0) * grid + j] = -vn[(1) * grid + j];
         vn[(grid)*grid + j] = -vn[(grid - 1) * grid + j];
@@ -95,6 +100,9 @@ void Simulator::applyBoundaryV() {
         vn[(i)*grid + 0] = 0.0;
         vn[(i)*grid + grid - 1] = 0.0;
     }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    counterBoundaryV.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
+    counterBoundaryV.count++;
 }
 
 void Simulator::solveContinuityEquationP(const FloatType delta) {
@@ -112,6 +120,7 @@ void Simulator::solveContinuityEquationP(const FloatType delta) {
 }
 
 void Simulator::applyBoundaryP() {
+    auto t1 = std::chrono::high_resolution_clock::now();
     for (SizeType i = 1; i <= (grid - 1); i++) {
         pn[(i) * (grid + 1) + 0] = pn[(i) * (grid + 1) + 1];
         pn[(i) * (grid + 1) + grid] = pn[(i) * (grid + 1) + grid - 1];
@@ -121,6 +130,9 @@ void Simulator::applyBoundaryP() {
         pn[(0) * (grid + 1) + j] = pn[(1) * (grid + 1) + j];
         pn[(grid) * (grid + 1) + j] = pn[(grid - 1) * (grid + 1) + j];
     }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    counterBoundaryP.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
+    counterBoundaryP.count++;
 }
 
 Simulator::FloatType Simulator::calculateError() {
@@ -199,10 +211,10 @@ void Simulator::initCounters() {
     unsigned byteMoved2 = static_cast<unsigned>((grid - 1) * (grid - 2) * sizeof(FloatType));
     counterSolveU.setCounter("solveUMomentum", byteMoved2 * 4);
     counterSolveV.setCounter("solveVMomentum", byteMoved2 * 4);
-    counterSolveP.setCounter("solveVMomentum", byteMoved * 4);
-    //counterBoundaryU.setCounter("applyBoundaryU", );
-    //counterBoundaryV.setCounter("applyBoundaryV");
-    //counterBoundaryP.setCounter("applyBoundaryP");
+    counterSolveP.setCounter("solveContinuityEquationP", byteMoved * 4);
+    counterBoundaryU.setCounter("applyBoundaryU", static_cast<unsigned>((grid - 1) * sizeof(FloatType) * 5));
+    counterBoundaryV.setCounter("applyBoundaryV", static_cast<unsigned>(((grid - 2) * 4 + grid * 2) * sizeof(FloatType)));
+    counterBoundaryP.setCounter("applyBoundaryP", static_cast<unsigned>(((grid - 1) * 4 + grid * 4) * sizeof(FloatType)));
 }
 
 void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps) {
@@ -233,10 +245,13 @@ void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps
         ++step;
     }
     //Print bandwidth table
-    fmt::print("{:<20} {:<20} {:<20} {:<20}\n", "Method", "Time (microseconds)", "Count", "Bandwidth");
+    fmt::print("{:<25} {:<25} {:<25} {:<25}\n", "Method", "Time (microseconds)", "Count", "Bandwidth (GB/s)");
     counterSolveU.printCounter();
     counterSolveV.printCounter();
     counterSolveP.printCounter();
+    counterBoundaryU.printCounter();
+    counterBoundaryV.printCounter();
+    counterBoundaryP.printCounter();
 }
 
 Simulator::~Simulator() { deallocate(); }

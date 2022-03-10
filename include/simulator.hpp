@@ -15,11 +15,11 @@ struct counter {
     }
 
     double getBandwidth() {
-        return static_cast<double>(bytesMoved * count)/time/1000;
+        return (bytesMoved/time/1000) * count;
     }
 
     void printCounter() {
-        fmt::print("{:<20} {:<20} {:<20} {:<20} \n", methodName, time, count, getBandwidth());
+        fmt::print("{:<25} {:<25} {:<25} {:<25.5f} \n", methodName, time, count, getBandwidth());
     }
 };
 
