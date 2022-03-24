@@ -62,6 +62,7 @@ void Simulator::applyBoundaryU() {
 }
 
 void Simulator::solveVMomentum(const FloatType Re) {
+    #pragma omp parallel for collapse(2)
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 2); j++) {
             vn[(i)*grid + j] = v[(i)*grid + j]
