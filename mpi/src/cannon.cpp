@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <vector>
 
-#define N 4 
+#define N 200
 #define UP 0
 #define DOWN 1
 #define LEFT 2
@@ -12,17 +12,15 @@
 
 int cannon(int argc, char* argv[]) {
     typedef float real;
-    int dim, numtasks, rank, source, dest, outbuf, i, tag = 1, inbuf[4] = { MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL }, nbrs[4],
-                                                 dims[2], periods[2] = { 1, 1 }, reorder = 0, coords[2];
-    int size_per_process;
+    int dim, numtasks, rank, dims[2], periods[2] = { 1, 1 }, reorder = 0, coords[2], size_per_process, nbrs[4];
     std::vector<real> a(N*N);
     std::vector<real> b(N*N);
     std::vector<real> c(N*N);
-    MPI_Request reqs[8];
-    MPI_Status stats[8];
+    std::vector<real> buffer, temp;
     MPI_Comm cartcomm;
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
+    MPI_Status status;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if (rank == 0) {
@@ -48,27 +46,36 @@ int cannon(int argc, char* argv[]) {
     MPI_Comm_rank(cartcomm, &rank);
     // Get my coordinates coords[0] and coords[1]
     MPI_Cart_coords(cartcomm, rank, 2, coords);
-    // std::cout<<coords[0]<<std::endl;
-    // std::cout<<coords[1]<<std::endl;
-    // std::cout<<"------------------"<<std::endl;
-    // Get my neighbours in dimension 0
-    MPI_Cart_shift(cartcomm, 0, 1, &nbrs[UP], &nbrs[DOWN]);
-    // Get my neighbours in dirmension 1
-    MPI_Cart_shift(cartcomm, 1, 1, &nbrs[LEFT], &nbrs[RIGHT]);
-    //printf("rank= %d coords= %d %d  neighbors(u,d,l,r)= %d %d %d %d\n", rank, coords[0], coords[1], nbrs[UP], nbrs[DOWN], nbrs[LEFT], nbrs[RIGHT]);
-
+ 
     //Fill matrices with random values
     for (int i = coords[0]*size_per_process; i < (coords[0] + 1)*size_per_process; i++) {
         for (int j = coords[1]*size_per_process; j < (coords[1] + 1)*size_per_process; j++) {
-            a[i*N+j] = (real)std::rand()/(real)RAND_MAX;
-            b[i*N+j] = (real)std::rand()/(real)RAND_MAX;
+            a[i*size_per_process+j] = (real)std::rand()/(real)RAND_MAX;
+            b[i*size_per_process+j] = (real)std::rand()/(real)RAND_MAX;
         }
     }
-    MPI_Barrier(cartcomm);
 
-    //Calculate multiplication
-
-    //MPI_Waitall(8, reqs, stats);
+    //initial shifting
+    MPI_Cart_shift(cartcomm, 0, 1, &nbrs[LEFT],  &nbrs[RIGHT]); 
+    MPI_Cart_shift(cartcomm, 1, 1, &nbrs[UP], &nbrs[DOWN]); 
+    
+    buffer.resize(size_per_process*size_per_process);
+    //Calculate multiplication for subarray
+    for (int shift = 0; shift < dim; shift++){
+        for (int i = coords[0]*size_per_process; i < (coords[0] + 1)*size_per_process; i++) {
+            for (int j = coords[1]*size_per_process; j < (coords[1] + 1)*size_per_process; j++)
+                for (int k = 0; k < size_per_process; k++) {
+                    c[i*size_per_process+j] += b[i*size_per_process+k] * a[k*size_per_process+j];
+            }
+        }
+        if ( shift == dims[0]-1 ) break;
+        //Shift matrices
+        MPI_Sendrecv(&a, size_per_process*size_per_process, MPI_DOUBLE, nbrs[LEFT], 1, &buffer, size_per_process*size_per_process, MPI_DOUBLE, nbrs[RIGHT], 1, cartcomm, &status); 
+        temp = buffer; buffer = a; b= temp;
+        MPI_Sendrecv(&b, size_per_process*size_per_process, MPI_DOUBLE, nbrs[UP], 1, &buffer, size_per_process*size_per_process, MPI_DOUBLE, 1, nbrs[DOWN], cartcomm, &status); 
+        temp = buffer; buffer = b; b = temp;
+    }
+    
     MPI_Finalize();
     return 0;
 }
