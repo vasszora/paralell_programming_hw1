@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <vector>
 
-#define N 200
+#define N 2048
 #define UP 0
 #define DOWN 1
 #define LEFT 2
