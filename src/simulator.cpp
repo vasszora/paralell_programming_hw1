@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <mpi.h>
+#include "MPIHandler.hpp"
 
 void Simulator::setPrinting(bool toPrint) { printing = toPrint; }
 
@@ -174,6 +176,7 @@ Simulator::Simulator(SizeType gridP)
       p((grid + 1) * (grid + 1)),
       pn((grid + 1) * (grid + 1)),
       m((grid + 1) * (grid + 1)) {
+    MPIHandler::getInstance()->handleMPIResource();
     initU();
     initV();
     initP();
