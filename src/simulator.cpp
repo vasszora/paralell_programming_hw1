@@ -6,7 +6,8 @@
 #include <limits>
 #include <chrono>
 
-void Simulator::setPrinting(bool toPrint) { printing = toPrint; }
+void Simulator::setPrinting(bool toPrint) { printing = toPrint; }//j=x, i=y
+//update repo
 
 void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
@@ -47,14 +48,15 @@ void Simulator::solveUMomentum(const FloatType Re) {
                     - dt / dx * (p[(i + 1) * (grid + 1) + j] - p[(i) * (grid + 1) + j]) + dt * 1.0 / Re
                     * ((u[(i + 1) * (grid + 1) + j] - 2.0 * u[(i) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j]) / dx / dx
                      + (u[(i) * (grid + 1) + j + 1] - 2.0 * u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) / dy / dy);
-        }//u, v, p
+        }//writing u, reading u, v, p neighbours -> 3 ghost exchanges before loop
+        
     }
     auto t2 = std::chrono::high_resolution_clock::now();
     counterSolveU.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
     counterSolveU.count++;
 }
 
-void Simulator::applyBoundaryU() {
+void Simulator::applyBoundaryU() {//no reading -> no halo exchange
     auto t1 = std::chrono::high_resolution_clock::now();
     for (SizeType j = 1; j <= (grid - 1); j++) {
         un[(0) * (grid + 1) + j] = 0.0;
@@ -135,14 +137,14 @@ void Simulator::applyBoundaryP() {
     counterBoundaryP.count++;
 }
 
-Simulator::FloatType Simulator::calculateError() {
+Simulator::FloatType Simulator::calculateError() {//write m, read un, vn -> halo exchange
     FloatType error = 0.0;
     #pragma omp parallel for reduction (+:error)
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
             m[(i) * (grid + 1) + j] =
                 ((un[(i) * (grid + 1) + j] - un[(i - 1) * (grid + 1) + j]) / dx + (vn[(i)*grid + j] - vn[(i)*grid + j - 1]) / dy);
-            error += fabs(m[(i) * (grid + 1) + j]);
+            error += fabs(m[(i) * (grid + 1) + j]); //-> mpi-reduce!
         }
     }
 
