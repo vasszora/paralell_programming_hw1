@@ -5,9 +5,9 @@
 #include "cannon.hpp"
 
 int main(int argc, char* argv[]) {
-    //return pi(argc, argv);
-    //return bigArray(argc, argv);
-    //return mpiCart(argc, argv);
+    return pi(argc, argv);
+    // return bigArray(argc, argv);
+    // return mpiCart(argc, argv);
     // return pingPong(argc, argv);
-    return cannon(argc, argv);
+    // return cannon(argc, argv);
 }
