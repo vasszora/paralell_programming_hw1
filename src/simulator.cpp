@@ -9,8 +9,7 @@
 #include "MPIHandler.hpp"
 #include "MPILaplace.hpp"
 
-void Simulator::setPrinting(bool toPrint) { printing = toPrint; }//j=x, i=y
-//update repo
+void Simulator::setPrinting(bool toPrint) { printing = toPrint && my_rank == 0; }//j=x, i=y
 
 void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
@@ -254,13 +253,15 @@ void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps
         ++step;
     }
     //Print bandwidth table
-    fmt::print("{:<25} {:<25} {:<25} {:<25}\n", "Method", "Time (microseconds)", "Count", "Bandwidth (GB/s)");
-    counterSolveU.printCounter();
-    counterSolveV.printCounter();
-    counterSolveP.printCounter();
-    counterBoundaryU.printCounter();
-    counterBoundaryV.printCounter();
-    counterBoundaryP.printCounter();
+    if (printing) {
+        fmt::print("{:<25} {:<25} {:<25} {:<25}\n", "Method", "Time (microseconds)", "Count", "Bandwidth (GB/s)");
+        counterSolveU.printCounter();
+        counterSolveV.printCounter();
+        counterSolveP.printCounter();
+        counterBoundaryU.printCounter();
+        counterBoundaryV.printCounter();
+        counterBoundaryP.printCounter();
+    }
 }
 
 Simulator::~Simulator() { deallocate(); }
