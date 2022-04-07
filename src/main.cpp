@@ -38,4 +38,5 @@ int main(int argc, char** argv) {
         fmt::print("There is no maximum steps, it will run until it goes into a steady state");
         s.run(4.5, 100.0);
     }
+    MPI_Finalize();
 }

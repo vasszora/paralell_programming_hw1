@@ -9,12 +9,12 @@
 #include "MPIHandler.hpp"
 #include "MPILaplace.hpp"
 
-void Simulator::setPrinting(bool toPrint) { printing = toPrint && my_rank == 0; }//j=x, i=y
+void Simulator::setPrinting(bool toPrint) { printing = toPrint && my_rank == 0; }
 
 void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
-        u[(i) * (grid + 1) + grid] = 1.0;
-        u[(i) * (grid + 1) + grid - 1] = 1.0;
+        if (get_coords()[0] == 0) u[(i) * (grid + 1) + grid] = 1.0;
+        if (get_coords()[0] == 0) u[(i) * (grid + 1) + grid - 1] = 1.0;
         for (SizeType j = 0; j < (grid - 1); j++) {
             u[(i) * (grid + 1) + j] = 0.0;
         }
@@ -213,20 +213,18 @@ Simulator::Simulator(SizeType gridP)
     MPIHandler::getInstance()->handleMPIResource();
     MPISetup(&grid, &grid);
 
-    u.resize((grid + 1) * (grid + 1));
-    un.resize((grid + 1) * (grid + 1));
-    v.resize((grid + 1) * (grid + 1));
-    vn.resize((grid + 1) * (grid + 1));
-    p.resize((grid + 1) * (grid + 1));
-    pn.resize((grid + 1) * (grid + 1));
-    m.resize((grid + 1) * (grid + 1));
-    MPI_Barrier(MPI_COMM_WORLD);
+    u.resize((grid + 2) * (grid + 2));
+    un.resize((grid + 2) * (grid + 2));
+    v.resize((grid + 2) * (grid + 2));
+    vn.resize((grid + 2) * (grid + 2));
+    p.resize((grid + 2) * (grid + 2));
+    pn.resize((grid + 2) * (grid + 2));
+    m.resize((grid + 2) * (grid + 2));
 
     initU();
     initV();
     initP();
     initCounters();
-    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void Simulator::initCounters() {
