@@ -39,6 +39,9 @@ void Simulator::initP() {
 
 void Simulator::solveUMomentum(const FloatType Re) {
     auto t1 = std::chrono::high_resolution_clock::now();
+    exchangeHalo(grid, grid, &u[0]);
+    exchangeHalo(grid, grid, &v[0]);
+    exchangeHalo(grid, grid, &p[0]);
     #pragma omp parallel for
     for (SizeType i = 1; i <= (grid - 2); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
@@ -76,6 +79,9 @@ void Simulator::applyBoundaryU() {//no reading -> no halo exchange
 
 void Simulator::solveVMomentum(const FloatType Re) {
     auto t1 = std::chrono::high_resolution_clock::now();
+    exchangeHalo(grid, grid, &u[0]);
+    exchangeHalo(grid, grid, &v[0]);
+    exchangeHalo(grid, grid, &p[0]);
     #pragma omp parallel for collapse(2)
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 2); j++) {
@@ -111,6 +117,9 @@ void Simulator::applyBoundaryV() {
 
 void Simulator::solveContinuityEquationP(const FloatType delta) {
     auto t1 = std::chrono::high_resolution_clock::now();
+    exchangeHalo(grid, grid, &un[0]);
+    exchangeHalo(grid, grid, &vn[0]);
+    exchangeHalo(grid, grid, &p[0]);
     #pragma omp parallel for
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
@@ -141,15 +150,19 @@ void Simulator::applyBoundaryP() {
 
 Simulator::FloatType Simulator::calculateError() {//write m, read un, vn -> halo exchange
     FloatType error = 0.0;
+    exchangeHalo(grid, grid, &un[0]);
+    exchangeHalo(grid, grid, &vn[0]);
     #pragma omp parallel for reduction (+:error)
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
             m[(i) * (grid + 1) + j] =
                 ((un[(i) * (grid + 1) + j] - un[(i - 1) * (grid + 1) + j]) / dx + (vn[(i)*(grid + 1) + j] - vn[(i)*(grid + 1) + j - 1]) / dy);
-            error += fabs(m[(i) * (grid + 1) + j]); //mpi-reduce
+            error += fabs(m[(i) * (grid + 1) + j]);
         }
     }
-
+    double error_g;
+    MPI_Allreduce(&error, &error_g, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    error = error_g;
     return error;
 }
 
@@ -207,11 +220,13 @@ Simulator::Simulator(SizeType gridP)
     p.resize((grid + 1) * (grid + 1));
     pn.resize((grid + 1) * (grid + 1));
     m.resize((grid + 1) * (grid + 1));
+    MPI_Barrier(MPI_COMM_WORLD);
 
     initU();
     initV();
     initP();
     initCounters();
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void Simulator::initCounters() {
@@ -243,7 +258,7 @@ void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps
 
         error = calculateError();
 
-        if (printing && (step % 1000 == 1)) {
+        if (printing && (step % 100 == 1)) {
             fmt::print("Error is {} for the step {}\n", error, step);
         }
 

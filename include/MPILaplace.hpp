@@ -14,3 +14,4 @@ extern int gbl_y_begin;
 
 void MPISetup(unsigned *xmax, unsigned *ymax);
 void exchangeHalo(unsigned xmax, unsigned ymax, double *arr);
+MPI_Comm get_cartcomm();

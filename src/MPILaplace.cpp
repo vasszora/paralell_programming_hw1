@@ -20,6 +20,8 @@ int gbl_x_begin;
 int gbl_y_begin;
 MPI_Comm cartcomm;
 
+MPI_Comm get_cartcomm() {return cartcomm;}
+
 void MPISetup(unsigned *xmax, unsigned *ymax) {
   //Initialise MPI, get number of processes
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
@@ -30,8 +32,8 @@ void MPISetup(unsigned *xmax, unsigned *ymax) {
 
   //Create cartesian communicator for 2D, dims[0]*dims[1] processes,
   //without periodicity and reordering
-  int periods[2] = { 0, 0 };
-  MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, 0, &cartcomm);//invalid argument of some other kinds
+  int periods[2] = { 1, 1 };
+  MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, 0, &cartcomm);
 
   //Get my rank in the new communicator
   MPI_Comm_rank(cartcomm, &my_rank);
@@ -73,17 +75,20 @@ void MPISetup(unsigned *xmax, unsigned *ymax) {
 
 void exchangeHalo(unsigned xmax, unsigned ymax, double *arr) {
   //send/receive vertical slices to previous and next neighbours in X direction
-  MPI_Sendrecv(&arr[1], 1, vertSlice, prev_x, 0,
-                &arr[xmax+1], 1, vertSlice, next_x, 0, 
-                cartcomm, MPI_STATUSES_IGNORE);
-  MPI_Sendrecv(&arr[xmax], 1, vertSlice, next_x, 0,
-                &arr[0], 1, vertSlice, next_x, 0, 
-                cartcomm, MPI_STATUSES_IGNORE);
+  MPI_Sendrecv(&arr[1],1,vertSlice,prev_x,0,
+      &arr[xmax+1],1,vertSlice,next_x,0,
+      cartcomm,MPI_STATUS_IGNORE);
+
+  MPI_Sendrecv(&arr[xmax],1,vertSlice,next_x,0,
+      &arr[0],1,vertSlice,prev_x,0,
+      cartcomm,MPI_STATUS_IGNORE);
+
   //send/receive vertical slices to previous and next neighbours in Y direction
-  MPI_Sendrecv(&arr[xmax+2], 1, horizSlice, prev_y, 0,
-               &arr[(ymax+1)*(xmax+2)], 1, horizSlice, next_x, 0, 
-               cartcomm, MPI_STATUSES_IGNORE);
-  MPI_Sendrecv(&arr[ymax+2], 1, horizSlice, prev_y, 0,
-               &arr[0], 1, horizSlice, next_x, 0, 
-               cartcomm, MPI_STATUSES_IGNORE);
+  MPI_Sendrecv(&arr[ymax*(xmax+2)],1,horizSlice,next_y,0,
+      &arr[0],1,horizSlice,prev_y,0,
+      cartcomm,MPI_STATUS_IGNORE);
+
+  MPI_Sendrecv(&arr[1*(xmax+2)],1,horizSlice,prev_y,0,
+      &arr[(ymax+1)*(xmax+2)],1,horizSlice,next_y,0,
+      cartcomm,MPI_STATUS_IGNORE);
 }
