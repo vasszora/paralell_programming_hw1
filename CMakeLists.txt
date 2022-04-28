@@ -69,7 +69,7 @@ find_package(OpenACC REQUIRED)
 # cuda_convert_flags(project_warnings)
 # set_target_properties(${SRC_LIBRARY} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 # set(OpenACC_CXX_FLAGS "${OpenACC_CXX_FLAGS} -acc -fast -Minfo=acce")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -acc -fast -Minfo=acce")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -acc -fast -Minfo=acce -gpu=managed")
 
 # creating the main executable and include the CMakeList file from src to include and link all the files
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})

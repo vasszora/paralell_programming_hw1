@@ -1,18 +1,18 @@
 #include "simulator.hpp"
+#include "fmt/core.h"
 #include <cmath>
 #include <exception>
 #include <fstream>
 #include <iostream>
 #include <limits>
-#include <chrono>
 #include <mpi.h>
 
-void Simulator::setPrinting(bool toPrint) { printing = toPrint && my_rank == 0; }
+void Simulator::setPrinting(bool toPrint) { printing = toPrint; }
 
 void Simulator::initU() {
     for (SizeType i = 0; i <= (grid - 1); i++) {
-        if (get_coords()[0] == 0) u[(i) * (grid + 1) + grid] = 1.0;
-        if (get_coords()[0] == 0) u[(i) * (grid + 1) + grid - 1] = 1.0;
+        u[(i) * (grid + 1) + grid] = 1.0;
+        u[(i) * (grid + 1) + grid - 1] = 1.0;
         for (SizeType j = 0; j < (grid - 1); j++) {
             u[(i) * (grid + 1) + j] = 0.0;
         }
@@ -36,11 +36,7 @@ void Simulator::initP() {
 }
 
 void Simulator::solveUMomentum(const FloatType Re) {
-    auto t1 = std::chrono::high_resolution_clock::now();
-    exchangeHalo(grid, grid, &u[0]);
-    exchangeHalo(grid, grid, &v[0]);
-    exchangeHalo(grid, grid, &p[0]);
-    #pragma omp parallel for
+    #pragma acc parallel loop independent collapse(2)
     for (SizeType i = 1; i <= (grid - 2); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
             un[(i) * (grid + 1) + j] = u[(i) * (grid + 1) + j]
@@ -51,36 +47,26 @@ void Simulator::solveUMomentum(const FloatType Re) {
                     - dt / dx * (p[(i + 1) * (grid + 1) + j] - p[(i) * (grid + 1) + j]) + dt * 1.0 / Re
                     * ((u[(i + 1) * (grid + 1) + j] - 2.0 * u[(i) * (grid + 1) + j] + u[(i - 1) * (grid + 1) + j]) / dx / dx
                      + (u[(i) * (grid + 1) + j + 1] - 2.0 * u[(i) * (grid + 1) + j] + u[(i) * (grid + 1) + j - 1]) / dy / dy);
-        }//writing u, reading u, v, p neighbours -> 3 ghost exchanges before loop
-        
+        }
     }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    counterSolveU.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
-    counterSolveU.count++;
 }
 
-void Simulator::applyBoundaryU() {//no reading -> no halo exchange
-    auto t1 = std::chrono::high_resolution_clock::now();
+void Simulator::applyBoundaryU() {
+     #pragma acc parallel loop
     for (SizeType j = 1; j <= (grid - 1); j++) {
         un[(0) * (grid + 1) + j] = 0.0;
         un[(grid - 1) * (grid + 1) + j] = 0.0;
     }
 
+     #pragma acc parallel loop independent
     for (SizeType i = 0; i <= (grid - 1); i++) {
         un[(i) * (grid + 1) + 0] = -un[(i) * (grid + 1) + 1];
         un[(i) * (grid + 1) + grid] = 2 - un[(i) * (grid + 1) + grid - 1];
     }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    counterBoundaryU.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
-    counterBoundaryU.count++;
 }
 
 void Simulator::solveVMomentum(const FloatType Re) {
-    auto t1 = std::chrono::high_resolution_clock::now();
-    exchangeHalo(grid, grid, &u[0]);
-    exchangeHalo(grid, grid, &v[0]);
-    exchangeHalo(grid, grid, &p[0]);
-    #pragma omp parallel for collapse(2)
+    #pragma acc parallel loop independent collapse(2)
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 2); j++) {
             vn[(i)*(grid + 1) + j] = v[(i)*(grid + 1) + j]
@@ -92,65 +78,50 @@ void Simulator::solveVMomentum(const FloatType Re) {
                               + (v[(i)*(grid + 1) + j + 1] - 2.0 * v[(i)*(grid + 1) + j] + v[(i)*(grid + 1) + j - 1]) / dy / dy);
         }
     }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    counterSolveV.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
-    counterSolveV.count++;
 }
 
 void Simulator::applyBoundaryV() {
-    auto t1 = std::chrono::high_resolution_clock::now();
+    #pragma acc parallel loop
     for (SizeType j = 1; j <= (grid - 2); j++) {
         vn[(0) * (grid + 1) + j] = -vn[(1) * (grid + 1) + j];
         vn[(grid)*(grid + 1) + j] = -vn[(grid - 1) * (grid + 1) + j];
     }
 
+    #pragma acc parallel loop
     for (SizeType i = 0; i <= (grid); i++) {
         vn[(i)*(grid + 1) + 0] = 0.0;
         vn[(i)*(grid + 1) + grid - 1] = 0.0;
     }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    counterBoundaryV.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
-    counterBoundaryV.count++;
 }
 
 void Simulator::solveContinuityEquationP(const FloatType delta) {
-    auto t1 = std::chrono::high_resolution_clock::now();
-    exchangeHalo(grid, grid, &un[0]);
-    exchangeHalo(grid, grid, &vn[0]);
-    exchangeHalo(grid, grid, &p[0]);
-    #pragma omp parallel for
+    #pragma acc parallel loop independent collapse(2)
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
             pn[(i) * (grid + 1) + j] = p[(i) * (grid + 1) + j]
                 - dt * delta * ((un[(i) * (grid + 1) + j] - un[(i - 1) * (grid + 1) + j]) / dx + (vn[(i)*(grid + 1) + j] - vn[(i)*(grid + 1) + j - 1]) / dy);
         }
     }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    counterSolveP.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
-    counterSolveP.count++;
 }
 
 void Simulator::applyBoundaryP() {
-    auto t1 = std::chrono::high_resolution_clock::now();
+    #pragma acc parallel loop
     for (SizeType i = 1; i <= (grid - 1); i++) {
         pn[(i) * (grid + 1) + 0] = pn[(i) * (grid + 1) + 1];
         pn[(i) * (grid + 1) + grid] = pn[(i) * (grid + 1) + grid - 1];
     }
 
+    #pragma acc parallel loop
     for (SizeType j = 0; j <= (grid); j++) {
         pn[(0) * (grid + 1) + j] = pn[(1) * (grid + 1) + j];
         pn[(grid) * (grid + 1) + j] = pn[(grid - 1) * (grid + 1) + j];
     }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    counterBoundaryP.time += static_cast<FloatType>(std::chrono::duration_cast<std::chrono::microseconds>(t2-t1).count());
-    counterBoundaryP.count++;
 }
 
-Simulator::FloatType Simulator::calculateError() {//write m, read un, vn -> halo exchange
+Simulator::FloatType Simulator::calculateError() {
     FloatType error = 0.0;
-    exchangeHalo(grid, grid, &un[0]);
-    exchangeHalo(grid, grid, &vn[0]);
-    #pragma omp parallel for reduction (+:error)
+
+    #pragma acc parallel loop independent collapse(2) reduction(+:error)
     for (SizeType i = 1; i <= (grid - 1); i++) {
         for (SizeType j = 1; j <= (grid - 1); j++) {
             m[(i) * (grid + 1) + j] =
@@ -158,9 +129,7 @@ Simulator::FloatType Simulator::calculateError() {//write m, read un, vn -> halo
             error += fabs(m[(i) * (grid + 1) + j]);
         }
     }
-    double error_g;
-    MPI_Allreduce(&error, &error_g, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-    error = error_g;
+
     return error;
 }
 
@@ -209,29 +178,17 @@ Simulator::Simulator(SizeType gridP)
       dy(1.0 / static_cast<FloatType>(grid - 1)),
       dt(0.001 / std::pow(grid / 128.0 * 2.0, 2.0)) {
 
-    u.resize((grid + 2) * (grid + 2));
-    un.resize((grid + 2) * (grid + 2));
-    v.resize((grid + 2) * (grid + 2));
-    vn.resize((grid + 2) * (grid + 2));
-    p.resize((grid + 2) * (grid + 2));
-    pn.resize((grid + 2) * (grid + 2));
-    m.resize((grid + 2) * (grid + 2));
+    u.resize((grid + 1) * (grid + 1));
+    un.resize((grid + 1) * (grid + 1));
+    v.resize((grid + 1) * (grid + 1));
+    vn.resize((grid + 1) * (grid + 1));
+    p.resize((grid + 1) * (grid + 1));
+    pn.resize((grid + 1) * (grid + 1));
+    m.resize((grid + 1) * (grid + 1));
 
     initU();
     initV();
     initP();
-    initCounters();
-}
-
-void Simulator::initCounters() {
-    unsigned byteMoved = static_cast<unsigned>((grid - 1) * (grid - 1) * sizeof(FloatType));
-    unsigned byteMoved2 = static_cast<unsigned>((grid - 1) * (grid - 2) * sizeof(FloatType));
-    counterSolveU.setCounter("solveUMomentum", byteMoved2 * 4);
-    counterSolveV.setCounter("solveVMomentum", byteMoved2 * 4);
-    counterSolveP.setCounter("solveContinuityEquationP", byteMoved * 4);
-    counterBoundaryU.setCounter("applyBoundaryU", static_cast<unsigned>((grid - 1) * sizeof(FloatType) * 5));
-    counterBoundaryV.setCounter("applyBoundaryV", static_cast<unsigned>(((grid - 2) * 4 + grid * 2) * sizeof(FloatType)));
-    counterBoundaryP.setCounter("applyBoundaryP", static_cast<unsigned>(((grid - 1) * 4 + grid * 4) * sizeof(FloatType)));
 }
 
 void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps) {
@@ -252,7 +209,7 @@ void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps
 
         error = calculateError();
 
-        if (printing && (step % 100 == 1)) {
+        if (printing && (step % 1000 == 1)) {
             fmt::print("Error is {} for the step {}\n", error, step);
         }
 
@@ -260,16 +217,6 @@ void Simulator::run(const FloatType delta, const FloatType Re, unsigned maxSteps
         iterateV();
         iterateP();
         ++step;
-    }
-    //Print bandwidth table
-    if (printing) {
-        fmt::print("{:<25} {:<25} {:<25} {:<25}\n", "Method", "Time (microseconds)", "Count", "Bandwidth (GB/s)");
-        counterSolveU.printCounter();
-        counterSolveV.printCounter();
-        counterSolveP.printCounter();
-        counterBoundaryU.printCounter();
-        counterBoundaryV.printCounter();
-        counterBoundaryP.printCounter();
     }
 }
 
